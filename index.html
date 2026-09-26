@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="tl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Daily</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root{
+    --bg: #FFF4F7;
+    --card: #FFFFFF;
+    --ink: #4A3540;
+    --ink-soft: #8C7480;
+    --line: #F3DCE4;
+
+    --rose: #EF7FA0;
+    --rose-deep: #C6547A;
+    --rose-soft: #FFE3EC;
+
+    --gold: #B9924F;
+    --gold-deep: #92742E;
+    --gold-soft: #F6ECD8;
+
+    --lav: #8C7FC0;
+    --lav-deep: #6C5FA0;
+    --lav-soft: #ECE8F8;
+
+    --ot: #6FAE7A;
+    --ot-deep: #3E7A4C;
+    --ot-soft: #E4F1E6;
+
+    --nt: #5C93C4;
+    --nt-deep: #33648F;
+    --nt-soft: #E3EDF6;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Quicksand',sans-serif;
+    font-size:16px;
+    line-height:1.55;
+    min-height:100vh;
+    padding-bottom:60px;
+  }
+  h1,h2,h3,.brand,button,.tab{font-family:'Fredoka',sans-serif;}
+
+  /* ---------- header ---------- */
+  header{
+    padding:28px 20px 18px;
+    text-align:center;
+  }
+  .brand{
+    font-size:1.7rem;
+    font-weight:600;
+    color:var(--rose-deep);
+    letter-spacing:.2px;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+  }
+  .brand svg{width:22px;height:22px;flex-shrink:0;}
+  .tagline{
+    color:var(--ink-soft);
+    font-size:.92rem;
+    margin-top:2px;
+  }
+
+  nav.tabs{
+    display:flex;
+    justify-content:center;
+    gap:8px;
+    margin:18px auto 0;
+    max-width:640px;
+    padding:0 12px;
+    flex-wrap:wrap;
+  }
+  .tab{
+    border:none;
+    background:transparent;
+    color:var(--ink-soft);
+    font-size:.95rem;
+    font-weight:500;
+    padding:9px 18px;
+    border-radius:999px;
+    cursor:pointer;
+    transition:background .15s ease, color .15s ease;
+  }
+  .tab.active{background:var(--card);color:var(--rose-deep);box-shadow:0 2px 10px rgba(200,90,130,.15);}
+  .tab[data-tab="bible"].active{color:var(--gold-deep);}
+  .tab[data-tab="checklist"].active{color:var(--lav-deep);}
+
+  main{max-width:640px;margin:0 auto;padding:8px 16px 40px;}
+  section.panel{display:none;}
+  section.panel.active{display:block;}
+
+  /* ---------- generic pieces ---------- */
+  .card{
+    background:var(--card);
+    border-radius:22px 8px 22px 8px;
+    padding:20px;
+    margin-bottom:16px;
+    box-shadow:0 3px 14px rgba(150,90,110,.08);
+  }
+  #bible .card{border-radius:14px;}
+  #checklist .card{border-radius:16px;}
+
+  .empty{
+    text-align:center;
+    color:var(--ink-soft);
+    padding:40px 20px;
+    font-size:.95rem;
+  }
+
+  .field{margin-bottom:14px;}
+  .field label{
+    display:block;
+    font-size:.82rem;
+    color:var(--ink-soft);
+    margin-bottom:5px;
+    font-weight:600;
+  }
+  .field input[type=text],
+  .field input[type=number],
+  .field input[type=date],
+  .field select,
+  .field textarea{
+    width:100%;
+    border:1.5px solid var(--line);
+    background:#FFFCFD;
+    border-radius:12px;
+    padding:10px 12px;
+    font-family:'Quicksand',sans-serif;
+    font-size:.96rem;
+    color:var(--ink);
+    resize:vertical;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus{
+    outline:2px solid var(--rose);
+    outline-offset:1px;
+    border-color:transparent;
+  }
+  #bible .field input:focus,#bible .field textarea:focus{outline-color:var(--gold);}
+  #checklist .field input:focus{outline-color:var(--lav);}
+
+  .btn{
+    border:none;
+    cursor:pointer;
+    font-family:'Fredoka',sans-serif;
+    font-weight:600;
+    font-size:.92rem;
+    padding:10px 20px;
+    border-radius:999px;
+    color:#fff;
+    background:var(--rose);
+    transition:transform .1s ease, background .15s ease;
+  }
+  .btn:hover{background:var(--rose-deep);}
+  .btn:active{transform:scale(.97);}
+  .btn.secondary{
+    background:transparent;
+    color:var(--rose-deep);
+    border:1.5px solid var(--rose);
+  }
+  .btn.secondary:hover{background:var(--rose-soft);}
+  #bible .btn{background:var(--gold);}
+  #bible .btn:hover{background:var(--gold-deep);}
+  #bible .btn.secondary{color:var(--gold-deep);border-color:var(--gold);background:transparent;}
+  #bible .btn.secondary:hover{background:var(--gold-soft);}
+  #checklist .btn{background:var(--lav);}
+  #checklist .btn:hover{background:var(--lav-deep);}
+  #checklist .btn.secondary{color:var(--lav-deep);border-color:var(--lav);background:transparent;}
+  #checklist .btn.secondary:hover{background:var(--lav-soft);}
+
+  .toggle-row{display:flex;justify-content:flex-end;margin-bottom:14px;}
+  .add-form{display:none;}
+  .add-form.open{display:block;}
+
+  .icon-btn{
+    background:none;border:none;cursor:pointer;
+    color:var(--ink-soft);font-size:1.05rem;padding:4px 6px;border-radius:8px;
+  }
+  .icon-btn:hover{background:rgba(0,0,0,.05);color:var(--ink);}
+
+  /* ---------- journal ---------- */
+  .entry-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+  .entry-date{font-size:.78rem;color:var(--ink-soft);font-weight:600;letter-spacing:.3px;}
+  .entry-title{font-size:1.15rem;font-weight:600;color:var(--rose-deep);margin:2px 0 8px;}
+  .entry-mood{font-size:1.2rem;}
+  .entry-photo{width:100%;max-height:280px;object-fit:cover;border-radius:14px 6px 14px 6px;margin:10px 0;}
+  .entry-content{white-space:pre-wrap;margin-bottom:10px;}
+  .highlights{
+    background:var(--rose-soft);
+    border-radius:12px;
+    padding:12px 16px;
+    margin-top:10px;
+  }
+  .highlights p{margin:0 0 6px;font-size:.78rem;font-weight:700;color:var(--rose-deep);text-transform:none;}
+  .highlights ul{margin:0;padding-left:18px;}
+  .highlights li{margin-bottom:3px;}
+
+  .bullet-row{display:flex;gap:6px;margin-bottom:8px;}
+  .bullet-row input{flex:1;}
+
+  /* ---------- bible study ---------- */
+  .soap-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;}
+  .soap-ref{font-size:1.1rem;font-weight:600;color:var(--gold-deep);}
+  .nlt-badge{
+    font-size:.68rem;font-weight:700;color:#fff;background:var(--gold);
+    padding:3px 9px;border-radius:999px;letter-spacing:.4px;
+  }
+  .soap-block{margin-bottom:12px;}
+  .soap-block:last-child{margin-bottom:0;}
+  .soap-label{
+    font-size:.72rem;font-weight:700;color:var(--gold-deep);
+    display:flex;align-items:center;gap:6px;margin-bottom:4px;
+  }
+  .soap-letter{
+    display:inline-flex;align-items:center;justify-content:center;
+    width:18px;height:18px;border-radius:6px;
+    background:var(--gold-soft);color:var(--gold-deep);
+    font-size:.68rem;font-weight:700;
+  }
+  .soap-text{white-space:pre-wrap;font-size:.94rem;padding-left:24px;}
+
+  /* ---------- checklist ---------- */
+  .book-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .book-name{font-size:1.05rem;font-weight:600;color:var(--lav-deep);}
+  .book-progress-text{font-size:.78rem;color:var(--ink-soft);margin-bottom:10px;}
+  .bar{height:8px;background:var(--lav-soft);border-radius:999px;overflow:hidden;margin-bottom:14px;}
+  .bar-fill{height:100%;background:var(--lav);border-radius:999px;transition:width .25s ease;}
+  .chapter-grid{display:flex;flex-wrap:wrap;gap:7px;}
+  .chap{
+    width:32px;height:32px;border-radius:50%;
+    border:1.5px solid var(--lav-soft);
+    background:#fff;color:var(--ink-soft);
+    font-size:.75rem;font-weight:600;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;transition:background .12s ease,color .12s ease,border-color .12s ease;
+    user-select:none;
+  }
+  .chap:hover{border-color:var(--lav);}
+  .chap.read{background:var(--lav);border-color:var(--lav);color:#fff;}
+
+  .ring-row{display:flex;justify-content:space-around;align-items:flex-start;flex-wrap:wrap;gap:12px;}
+  .ring-item{display:flex;flex-direction:column;align-items:center;gap:6px;}
+  .ring-label{font-size:.76rem;color:var(--ink-soft);font-weight:600;text-align:center;}
+
+  .stat-title{font-size:.92rem;font-weight:600;color:var(--ink);margin-bottom:12px;}
+  .stat-row{display:flex;gap:10px;}
+  .stat-chip{
+    flex:1;border-radius:14px;padding:12px 6px;text-align:center;
+    font-family:'Fredoka',sans-serif;font-weight:600;font-size:1.02rem;
+    display:flex;flex-direction:column;gap:4px;
+  }
+  .stat-chip span{font-family:'Quicksand',sans-serif;font-weight:600;font-size:.68rem;opacity:.85;}
+
+  .section-heading{
+    font-family:'Fredoka',sans-serif;font-weight:600;font-size:.95rem;
+    color:var(--lav-deep);margin:22px 4px 10px;
+  }
+  details.book-acc{
+    background:var(--card);border-radius:14px;padding:0;margin-bottom:10px;
+    box-shadow:0 2px 10px rgba(120,100,160,.08);overflow:hidden;
+  }
+  details.book-acc summary{
+    list-style:none;cursor:pointer;padding:13px 16px;
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    font-family:'Fredoka',sans-serif;font-weight:500;font-size:.94rem;
+  }
+  details.book-acc summary::-webkit-details-marker{display:none;}
+  details.book-acc summary::after{
+    content:'⌄';margin-left:auto;padding-left:8px;color:var(--ink-soft);
+    transition:transform .15s ease;font-size:1rem;
+  }
+  details.book-acc[open] summary::after{transform:rotate(180deg);}
+  .book-acc-name{color:var(--ink);flex:1;}
+  .book-acc-meta{font-family:'Quicksand',sans-serif;font-size:.8rem;color:var(--lav-deep);font-weight:600;white-space:nowrap;}
+  details.book-acc .chapter-grid{padding:0 16px 16px;}
+
+  /* ---------- toast ---------- */
+  #toast{
+    position:fixed;left:50%;bottom:22px;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:#fff;padding:11px 20px;border-radius:999px;
+    font-size:.88rem;opacity:0;pointer-events:none;transition:all .25s ease;
+    max-width:88vw;text-align:center;
+  }
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  ::placeholder{color:#C9B7BF;}
+  @media (max-width:420px){
+    .brand{font-size:1.4rem;}
+    .card{padding:16px;}
+  }
+
+  /* ---------- auth screen ---------- */
+  .auth-screen{
+    min-height:100vh;display:flex;align-items:center;justify-content:center;
+    padding:24px;
+  }
+  .auth-card{
+    background:var(--card);width:100%;max-width:360px;
+    border-radius:24px 8px 24px 8px;padding:28px 26px;
+    box-shadow:0 6px 24px rgba(180,90,120,.14);
+    text-align:center;
+  }
+  .auth-card .brand{font-size:1.4rem;margin-bottom:4px;}
+  .auth-card .tagline{margin-bottom:20px;}
+  .auth-tabs{display:flex;background:var(--bg);border-radius:999px;padding:4px;margin-bottom:20px;}
+  .auth-tab{
+    flex:1;border:none;background:transparent;padding:9px 0;border-radius:999px;
+    font-family:'Fredoka',sans-serif;font-weight:500;color:var(--ink-soft);cursor:pointer;font-size:.9rem;
+  }
+  .auth-tab.active{background:var(--card);color:var(--rose-deep);box-shadow:0 2px 8px rgba(200,90,130,.15);}
+  #authForm{text-align:left;}
+  #authForm .btn{width:100%;justify-content:center;margin-top:6px;}
+  .auth-msg{font-size:.82rem;color:var(--rose-deep);margin-top:12px;min-height:1.2em;}
+
+  /* ---------- header sign out ---------- */
+  header{position:relative;}
+  .signout-btn{
+    position:absolute;top:24px;right:18px;background:none;border:none;
+    color:var(--ink-soft);font-size:.78rem;cursor:pointer;
+    font-family:'Quicksand',sans-serif;font-weight:600;text-decoration:underline;
+  }
+  .signout-btn:hover{color:var(--rose-deep);}
+</style>
+</head>
+<body>
+
+<div class="auth-screen" id="authScreen">
+  <div class="auth-card">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.2 2 4.5 5.6 4c2-.3 3.7.6 4.9 2.2C11.7 4.6 13.4 3.7 15.4 4 19 4.5 20.6 8.2 19 11.7 16.5 16.4 9 21 9 21" fill="#EF7FA0"/></svg>
+      Daily
+    </div>
+    <div class="tagline">journal &middot; bible study &middot; reading checklist</div>
+    <div class="auth-tabs">
+      <button type="button" class="auth-tab active" data-mode="login">Log in</button>
+      <button type="button" class="auth-tab" data-mode="signup">Sign up</button>
+    </div>
+    <form id="authForm">
+      <div class="field">
+        <label>Email</label>
+        <input type="email" id="authEmail" required>
+      </div>
+      <div class="field">
+        <label>Password</label>
+        <input type="password" id="authPassword" required minlength="6">
+      </div>
+      <button type="submit" class="btn" id="authSubmitBtn">Log in</button>
+    </form>
+    <div class="auth-msg" id="authMsg"></div>
+  </div>
+</div>
+
+<div id="appShell" style="display:none;">
+<header>
+  <button class="signout-btn" id="signOutBtn">Log out</button>
+  <div class="brand">
+    <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.2 2 4.5 5.6 4c2-.3 3.7.6 4.9 2.2C11.7 4.6 13.4 3.7 15.4 4 19 4.5 20.6 8.2 19 11.7 16.5 16.4 9 21 9 21" fill="#EF7FA0"/></svg>
+    Daily
+  </div>
+  <div class="tagline">journal &middot; bible study &middot; reading checklist</div>
+  <nav class="tabs">
+    <button class="tab active" data-tab="journal">Journal</button>
+    <button class="tab" data-tab="bible">Bible Study</button>
+    <button class="tab" data-tab="checklist">Checklist</button>
+  </nav>
+</header>
+
+<main>
+
+  <!-- ================= JOURNAL ================= -->
+  <section class="panel active" id="journal">
+    <div class="toggle-row">
+      <button class="btn" id="journalToggleBtn">+ Bagong Entry</button>
+    </div>
+
+    <form class="add-form card" id="journalForm">
+      <div class="field">
+        <label>Petsa</label>
+        <input type="date" id="jDate" required>
+      </div>
+      <div class="field">
+        <label>Pamagat</label>
+        <input type="text" id="jTitle" placeholder="hal. random Tuesday thoughts" required>
+      </div>
+      <div class="field">
+        <label>Mood</label>
+        <select id="jMood">
+          <option value="😊">😊 masaya</option>
+          <option value="🥰">🥰 in love</option>
+          <option value="😌">😌 chill lang</option>
+          <option value="😢">😢 malungkot</option>
+          <option value="😤">😤 stressed</option>
+          <option value="🤔">🤔 pensive</option>
+        </select>
+      </div>
+      <div class="field">
+        <label>Kwento</label>
+        <textarea id="jContent" rows="5" placeholder="isulat mo dito ang nangyari..." required></textarea>
+      </div>
+      <div class="field">
+        <label>Picture (optional)</label>
+        <input type="file" id="jPhoto" accept="image/*">
+      </div>
+      <div class="field">
+        <label>Buod / Highlights (para pag skim, alam mo agad)</label>
+        <div id="bulletList"></div>
+        <button type="button" class="btn secondary" id="addBulletBtn" style="font-size:.8rem;padding:6px 14px;">+ Idagdag ang point</button>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:16px;">
+        <button type="submit" class="btn">I-save ang entry</button>
+        <button type="button" class="btn secondary" id="journalCancelBtn">Cancel</button>
+      </div>
+    </form>
+
+    <div id="journalList"></div>
+  </section>
+
+  <!-- ================= BIBLE STUDY ================= -->
+  <section class="panel" id="bible">
+    <div class="toggle-row">
+      <button class="btn" id="bibleToggleBtn">+ Bagong SOAP Entry</button>
+    </div>
+
+    <form class="add-form card" id="bibleForm">
+      <div style="display:flex;gap:10px;">
+        <div class="field" style="flex:2;">
+          <label>Book</label>
+          <select id="bBook" required></select>
+        </div>
+        <div class="field" style="flex:1;">
+          <label>Chapter</label>
+          <select id="bChapter" required></select>
+        </div>
+        <div class="field" style="flex:1;">
+          <label>Verses</label>
+          <input type="text" id="bVerses" placeholder="1-5">
+        </div>
+      </div>
+      <div class="field">
+        <label>S &mdash; Scripture (NLT)</label>
+        <textarea id="bScripture" rows="3" placeholder="i-type ang verses mula sa NLT Bible mo" required></textarea>
+      </div>
+      <div class="field">
+        <label>O &mdash; Observation</label>
+        <textarea id="bObservation" rows="3" placeholder="ano ang napansin mo sa teksto?"></textarea>
+      </div>
+      <div class="field">
+        <label>A &mdash; Application</label>
+        <textarea id="bApplication" rows="3" placeholder="paano mo ito maiaapply sa buhay mo?"></textarea>
+      </div>
+      <div class="field">
+        <label>P &mdash; Prayer</label>
+        <textarea id="bPrayer" rows="3" placeholder="isulat ang panalangin mo"></textarea>
+      </div>
+      <div style="display:flex;gap:10px;margin-top:6px;">
+        <button type="submit" class="btn">I-save ang SOAP entry</button>
+        <button type="button" class="btn secondary" id="bibleCancelBtn">Cancel</button>
+      </div>
+    </form>
+
+    <div id="bibleList"></div>
+  </section>
+
+  <!-- ================= CHECKLIST (Bible Tracker) ================= -->
+  <section class="panel" id="checklist">
+    <div id="checklistList"></div>
+  </section>
+
+</main>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const SUPABASE_URL = "https://uxytrqnzxsptfmafktny.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV4eXRycW56eHNwdGZtYWZrdG55Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTAzNzM1MTQsImV4cCI6MjEwNTk0OTUxNH0.46yfgnmpVJy40OCwfcY2lv-IApPplMV1oJMvzvaroRM";
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+/* ================= AUTH ================= */
+let authMode = 'login';
+document.querySelectorAll('.auth-tab').forEach(t=>{
+  t.addEventListener('click', ()=>{
+    document.querySelectorAll('.auth-tab').forEach(x=>x.classList.remove('active'));
+    t.classList.add('active');
+    authMode = t.dataset.mode;
+    document.getElementById('authSubmitBtn').textContent = authMode === 'login' ? 'Log in' : 'Gumawa ng account';
+    document.getElementById('authMsg').textContent = '';
+  });
+});
+
+document.getElementById('authForm').addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const email = document.getElementById('authEmail').value.trim();
+  const password = document.getElementById('authPassword').value;
+  const msg = document.getElementById('authMsg');
+  const btn = document.getElementById('authSubmitBtn');
+  btn.disabled = true;
+  msg.textContent = '';
+  try{
+    if(authMode === 'signup'){
+      const { data, error } = await sb.auth.signUp({ email, password });
+      if(error) throw error;
+      if(data.session){
+        showApp();
+      } else {
+        msg.textContent = 'Halos tapos na! I-check mo ang email mo para i-confirm ang account bago mag-login.';
+      }
+    } else {
+      const { data, error } = await sb.auth.signInWithPassword({ email, password });
+      if(error) throw error;
+      showApp();
+    }
+  }catch(err){
+    msg.textContent = err.message;
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+document.getElementById('signOutBtn').addEventListener('click', async ()=>{
+  await sb.auth.signOut();
+});
+
+function showApp(){
+  document.getElementById('authScreen').style.display = 'none';
+  document.getElementById('appShell').style.display = 'block';
+  loadJournal();
+  loadBible();
+  loadChecklist();
+}
+function showAuth(){
+  document.getElementById('appShell').style.display = 'none';
+  document.getElementById('authScreen').style.display = 'flex';
+  document.getElementById('authForm').reset();
+  document.getElementById('authMsg').textContent = '';
+}
+
+sb.auth.onAuthStateChange((event, session)=>{
+  if(event === 'SIGNED_OUT'){ showAuth(); }
+});
+
+async function checkSession(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(session){ showApp(); } else { showAuth(); }
+}
+
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toast._h);
+  toast._h = setTimeout(()=>t.classList.remove('show'), 2600);
+}
+
+/* ---------------- tabs ---------------- */
+document.querySelectorAll('.tab').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.tab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById(btn.dataset.tab).classList.add('active');
+  });
+});
+
+function wireToggle(toggleBtnId, formId, cancelBtnId){
+  const toggleBtn = document.getElementById(toggleBtnId);
+  const form = document.getElementById(formId);
+  const cancelBtn = document.getElementById(cancelBtnId);
+  toggleBtn.addEventListener('click', ()=>{
+    form.classList.toggle('open');
+    toggleBtn.style.display = form.classList.contains('open') ? 'none' : 'inline-flex';
+  });
+  cancelBtn.addEventListener('click', ()=>{
+    form.classList.remove('open');
+    toggleBtn.style.display = 'inline-flex';
+    form.reset();
+  });
+}
+wireToggle('journalToggleBtn','journalForm','journalCancelBtn');
+wireToggle('bibleToggleBtn','bibleForm','bibleCancelBtn');
+
+function escapeHtml(str){
+  if(!str) return '';
+  return str.replace(/[&<>"']/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function fmtDate(d){
+  if(!d) return '';
+  const dt = new Date(d + 'T00:00:00');
+  return dt.toLocaleDateString('en-PH', {month:'short', day:'numeric', year:'numeric'});
+}
+
+/* ================= BIBLE DATA (66 books, standard chapter counts) ================= */
+const BIBLE_BOOKS = [
+  {name:'Genesis',testament:'OT',chapters:50},{name:'Exodus',testament:'OT',chapters:40},
+  {name:'Leviticus',testament:'OT',chapters:27},{name:'Numbers',testament:'OT',chapters:36},
+  {name:'Deuteronomy',testament:'OT',chapters:34},{name:'Joshua',testament:'OT',chapters:24},
+  {name:'Judges',testament:'OT',chapters:21},{name:'Ruth',testament:'OT',chapters:4},
+  {name:'1 Samuel',testament:'OT',chapters:31},{name:'2 Samuel',testament:'OT',chapters:24},
+  {name:'1 Kings',testament:'OT',chapters:22},{name:'2 Kings',testament:'OT',chapters:25},
+  {name:'1 Chronicles',testament:'OT',chapters:29},{name:'2 Chronicles',testament:'OT',chapters:36},
+  {name:'Ezra',testament:'OT',chapters:10},{name:'Nehemiah',testament:'OT',chapters:13},
+  {name:'Esther',testament:'OT',chapters:10},{name:'Job',testament:'OT',chapters:42},
+  {name:'Psalms',testament:'OT',chapters:150},{name:'Proverbs',testament:'OT',chapters:31},
+  {name:'Ecclesiastes',testament:'OT',chapters:12},{name:'Song of Solomon',testament:'OT',chapters:8},
+  {name:'Isaiah',testament:'OT',chapters:66},{name:'Jeremiah',testament:'OT',chapters:52},
+  {name:'Lamentations',testament:'OT',chapters:5},{name:'Ezekiel',testament:'OT',chapters:48},
+  {name:'Daniel',testament:'OT',chapters:12},{name:'Hosea',testament:'OT',chapters:14},
+  {name:'Joel',testament:'OT',chapters:3},{name:'Amos',testament:'OT',chapters:9},
+  {name:'Obadiah',testament:'OT',chapters:1},{name:'Jonah',testament:'OT',chapters:4},
+  {name:'Micah',testament:'OT',chapters:7},{name:'Nahum',testament:'OT',chapters:3},
+  {name:'Habakkuk',testament:'OT',chapters:3},{name:'Zephaniah',testament:'OT',chapters:3},
+  {name:'Haggai',testament:'OT',chapters:2},{name:'Zechariah',testament:'OT',chapters:14},
+  {name:'Malachi',testament:'OT',chapters:4},
+  {name:'Matthew',testament:'NT',chapters:28},{name:'Mark',testament:'NT',chapters:16},
+  {name:'Luke',testament:'NT',chapters:24},{name:'John',testament:'NT',chapters:21},
+  {name:'Acts',testament:'NT',chapters:28},{name:'Romans',testament:'NT',chapters:16},
+  {name:'1 Corinthians',testament:'NT',chapters:16},{name:'2 Corinthians',testament:'NT',chapters:13},
+  {name:'Galatians',testament:'NT',chapters:6},{name:'Ephesians',testament:'NT',chapters:6},
+  {name:'Philippians',testament:'NT',chapters:4},{name:'Colossians',testament:'NT',chapters:4},
+  {name:'1 Thessalonians',testament:'NT',chapters:5},{name:'2 Thessalonians',testament:'NT',chapters:3},
+  {name:'1 Timothy',testament:'NT',chapters:6},{name:'2 Timothy',testament:'NT',chapters:4},
+  {name:'Titus',testament:'NT',chapters:3},{name:'Philemon',testament:'NT',chapters:1},
+  {name:'Hebrews',testament:'NT',chapters:13},{name:'James',testament:'NT',chapters:5},
+  {name:'1 Peter',testament:'NT',chapters:5},{name:'2 Peter',testament:'NT',chapters:3},
+  {name:'1 John',testament:'NT',chapters:5},{name:'2 John',testament:'NT',chapters:1},
+  {name:'3 John',testament:'NT',chapters:1},{name:'Jude',testament:'NT',chapters:1},
+  {name:'Revelation',testament:'NT',chapters:22}
+];
+
+function ringSVG(pct, color, trackColor){
+  const r = 42, c = 2*Math.PI*r;
+  const offset = c - (pct/100)*c;
+  return `<svg width="98" height="98" viewBox="0 0 100 100">
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${trackColor}" stroke-width="9"/>
+    <circle cx="50" cy="50" r="${r}" fill="none" stroke="${color}" stroke-width="9" stroke-linecap="round"
+      stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${offset.toFixed(2)}" transform="rotate(-90 50 50)"/>
+    <text x="50" y="56" text-anchor="middle" font-family="Fredoka" font-size="19" font-weight="600" fill="${color}">${pct}%</text>
+  </svg>`;
+}
+
+/* ================= JOURNAL ================= */
+document.getElementById('jDate').valueAsDate = new Date();
+
+function addBulletRow(value=''){
+  const wrap = document.getElementById('bulletList');
+  const row = document.createElement('div');
+  row.className = 'bullet-row';
+  row.innerHTML = `<input type="text" placeholder="hal. na-realize ko na..." value="${escapeHtml(value)}">
+    <button type="button" class="icon-btn removeBullet">&times;</button>`;
+  row.querySelector('.removeBullet').addEventListener('click', ()=>row.remove());
+  wrap.appendChild(row);
+}
+document.getElementById('addBulletBtn').addEventListener('click', ()=>addBulletRow());
+addBulletRow();
+
+async function loadJournal(){
+  const list = document.getElementById('journalList');
+  list.innerHTML = '<div class="empty">Naglo-load...</div>';
+  const { data, error } = await sb.from('journal_entries').select('*').order('entry_date', {ascending:false}).order('created_at',{ascending:false});
+  if(error){ list.innerHTML = `<div class="empty">Hindi ma-load: ${escapeHtml(error.message)}</div>`; return; }
+  if(!data || data.length === 0){ list.innerHTML = '<div class="empty">Wala pa dito! Simulan mo na ang unang entry mo 💌</div>'; return; }
+  list.innerHTML = data.map(e=>{
+    const highlights = (e.highlights && e.highlights.length)
+      ? `<div class="highlights"><p>Buod</p><ul>${e.highlights.map(h=>`<li>${escapeHtml(h)}</li>`).join('')}</ul></div>` : '';
+    const photo = e.image_url ? `<img class="entry-photo" src="${e.image_url}" alt="">` : '';
+    return `<div class="card" data-id="${e.id}">
+      <div class="entry-head">
+        <div>
+          <div class="entry-date">${fmtDate(e.entry_date)}</div>
+          <div class="entry-title">${escapeHtml(e.title)}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="entry-mood">${e.mood||''}</span>
+          <button class="icon-btn delJournal" title="Delete">🗑</button>
+        </div>
+      </div>
+      ${photo}
+      <div class="entry-content">${escapeHtml(e.content)}</div>
+      ${highlights}
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.delJournal').forEach(b=>{
+    b.addEventListener('click', async (ev)=>{
+      const id = ev.target.closest('.card').dataset.id;
+      if(!confirm('Sigurado ka bang burahin ang entry na ito?')) return;
+      const { error } = await sb.from('journal_entries').delete().eq('id', id);
+      if(error){ toast('May error: '+error.message); return; }
+      toast('Nabura na 🗑');
+      loadJournal();
+    });
+  });
+}
+
+document.getElementById('journalForm').addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const submitBtn = ev.target.querySelector('button[type=submit]');
+  submitBtn.disabled = true; submitBtn.textContent = 'Sine-save...';
+  try{
+    let image_url = null;
+    const file = document.getElementById('jPhoto').files[0];
+    if(file){
+      const path = `entries/${Date.now()}-${file.name.replace(/\s+/g,'_')}`;
+      const { error: upErr } = await sb.storage.from('journal-images').upload(path, file);
+      if(upErr) throw upErr;
+      const { data: pub } = sb.storage.from('journal-images').getPublicUrl(path);
+      image_url = pub.publicUrl;
+    }
+    const highlights = Array.from(document.querySelectorAll('#bulletList input'))
+      .map(i=>i.value.trim()).filter(Boolean);
+
+    const payload = {
+      entry_date: document.getElementById('jDate').value,
+      title: document.getElementById('jTitle').value.trim(),
+      mood: document.getElementById('jMood').value,
+      content: document.getElementById('jContent').value.trim(),
+      image_url,
+      highlights
+    };
+    const { error } = await sb.from('journal_entries').insert(payload);
+    if(error) throw error;
+    toast('Na-save ang entry mo 💕');
+    ev.target.reset();
+    document.getElementById('jDate').valueAsDate = new Date();
+    document.getElementById('bulletList').innerHTML = '';
+    addBulletRow();
+    ev.target.classList.remove('open');
+    document.getElementById('journalToggleBtn').style.display = 'inline-flex';
+    loadJournal();
+  }catch(err){
+    toast('May error: '+err.message);
+  }finally{
+    submitBtn.disabled = false; submitBtn.textContent = 'I-save ang entry';
+  }
+});
+
+/* ================= BIBLE STUDY ================= */
+function populateBibleFormSelectors(){
+  const bookSel = document.getElementById('bBook');
+  const otGroup = document.createElement('optgroup'); otGroup.label = 'Old Testament';
+  const ntGroup = document.createElement('optgroup'); ntGroup.label = 'New Testament';
+  BIBLE_BOOKS.forEach(b=>{
+    const opt = document.createElement('option');
+    opt.value = b.name; opt.textContent = b.name; opt.dataset.chapters = b.chapters;
+    (b.testament === 'OT' ? otGroup : ntGroup).appendChild(opt);
+  });
+  bookSel.appendChild(otGroup); bookSel.appendChild(ntGroup);
+  bookSel.addEventListener('change', updateChapterOptions);
+  updateChapterOptions();
+}
+function updateChapterOptions(){
+  const bookSel = document.getElementById('bBook');
+  const chapSel = document.getElementById('bChapter');
+  const selectedOpt = bookSel.options[bookSel.selectedIndex];
+  const n = selectedOpt ? parseInt(selectedOpt.dataset.chapters, 10) : 50;
+  const prev = chapSel.value;
+  chapSel.innerHTML = '';
+  for(let i=1;i<=n;i++){
+    const o = document.createElement('option'); o.value = i; o.textContent = i;
+    chapSel.appendChild(o);
+  }
+  if(prev && parseInt(prev,10) <= n) chapSel.value = prev;
+}
+populateBibleFormSelectors();
+
+async function loadBible(){
+  const list = document.getElementById('bibleList');
+  list.innerHTML = '<div class="empty">Naglo-load...</div>';
+  const { data, error } = await sb.from('bible_studies').select('*').order('created_at', {ascending:false});
+  if(error){ list.innerHTML = `<div class="empty">Hindi ma-load: ${escapeHtml(error.message)}</div>`; return; }
+  if(!data || data.length === 0){ list.innerHTML = '<div class="empty">Wala pa dito! Simulan mo ang unang SOAP entry mo 📖</div>'; return; }
+  list.innerHTML = data.map(e=>{
+    const ref = `${escapeHtml(e.book)} ${e.chapter}${e.verses ? ':'+escapeHtml(e.verses) : ''}`;
+    const block = (letter,label,text)=> text ? `<div class="soap-block">
+      <div class="soap-label"><span class="soap-letter">${letter}</span>${label}</div>
+      <div class="soap-text">${escapeHtml(text)}</div>
+    </div>` : '';
+    return `<div class="card" data-id="${e.id}">
+      <div class="soap-head">
+        <div class="soap-ref">${ref}</div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <span class="nlt-badge">NLT</span>
+          <button class="icon-btn delBible" title="Delete">🗑</button>
+        </div>
+      </div>
+      ${block('S','Scripture', e.scripture)}
+      ${block('O','Observation', e.observation)}
+      ${block('A','Application', e.application)}
+      ${block('P','Prayer', e.prayer)}
+    </div>`;
+  }).join('');
+  list.querySelectorAll('.delBible').forEach(b=>{
+    b.addEventListener('click', async (ev)=>{
+      const id = ev.target.closest('.card').dataset.id;
+      if(!confirm('Sigurado ka bang burahin ang entry na ito?')) return;
+      const { error } = await sb.from('bible_studies').delete().eq('id', id);
+      if(error){ toast('May error: '+error.message); return; }
+      toast('Nabura na 🗑');
+      loadBible();
+    });
+  });
+}
+
+document.getElementById('bibleForm').addEventListener('submit', async (ev)=>{
+  ev.preventDefault();
+  const submitBtn = ev.target.querySelector('button[type=submit]');
+  submitBtn.disabled = true; submitBtn.textContent = 'Sine-save...';
+  try{
+    const payload = {
+      book: document.getElementById('bBook').value.trim(),
+      chapter: parseInt(document.getElementById('bChapter').value,10),
+      verses: document.getElementById('bVerses').value.trim(),
+      scripture: document.getElementById('bScripture').value.trim(),
+      observation: document.getElementById('bObservation').value.trim(),
+      application: document.getElementById('bApplication').value.trim(),
+      prayer: document.getElementById('bPrayer').value.trim()
+    };
+    const { error } = await sb.from('bible_studies').insert(payload);
+    if(error) throw error;
+    toast('Na-save ang SOAP entry mo 📖');
+    ev.target.reset();
+    ev.target.classList.remove('open');
+    document.getElementById('bibleToggleBtn').style.display = 'inline-flex';
+    loadBible();
+  }catch(err){
+    toast('May error: '+err.message);
+  }finally{
+    submitBtn.disabled = false; submitBtn.textContent = 'I-save ang SOAP entry';
+  }
+});
+
+/* ================= CHECKLIST (Bible Tracker) ================= */
+const openBooks = new Set();
+document.getElementById('checklistList').addEventListener('toggle', (e)=>{
+  if(e.target.tagName !== 'DETAILS') return;
+  const id = e.target.dataset.bookid;
+  if(e.target.open) openBooks.add(id); else openBooks.delete(id);
+}, true);
+
+async function ensureBibleSeed(){
+  const { count, error } = await sb.from('reading_checklists').select('*', {count:'exact', head:true});
+  if(error){ toast('May error: '+error.message); return; }
+  if(count && count > 0) return;
+  const rows = BIBLE_BOOKS.map((b,i)=>({book_name:b.name, total_chapters:b.chapters, testament:b.testament, book_order:i+1}));
+  const { data: inserted, error: insErr } = await sb.from('reading_checklists').insert(rows).select();
+  if(insErr){ toast('Seed error: '+insErr.message); return; }
+  let progressRows = [];
+  inserted.forEach(book=>{
+    for(let c=1;c<=book.total_chapters;c++){ progressRows.push({checklist_id: book.id, chapter_number:c, is_read:false}); }
+  });
+  for(let i=0;i<progressRows.length;i+=500){
+    const { error: pErr } = await sb.from('reading_progress').insert(progressRows.slice(i,i+500));
+    if(pErr){ toast('Seed error: '+pErr.message); return; }
+  }
+}
+
+async function loadChecklist(){
+  const container = document.getElementById('checklistList');
+  container.innerHTML = '<div class="empty">Naglo-load ang Bible tracker...</div>';
+  await ensureBibleSeed();
+  const { data, error } = await sb.from('reading_checklists').select('*, reading_progress(*)').order('book_order', {ascending:true});
+  if(error){ container.innerHTML = `<div class="empty">Hindi ma-load: ${escapeHtml(error.message)}</div>`; return; }
+  if(!data || !data.length){ container.innerHTML = '<div class="empty">Hindi ma-seed ang Bible books. I-refresh mo ang page.</div>'; return; }
+
+  let ot = {booksTotal:0, booksDone:0, chapTotal:0, chapDone:0};
+  let nt = {booksTotal:0, booksDone:0, chapTotal:0, chapDone:0};
+  const booksHtml = {OT:[], NT:[]};
+
+  data.forEach(book=>{
+    const progress = (book.reading_progress||[]).slice().sort((a,b)=>a.chapter_number-b.chapter_number);
+    const done = progress.filter(p=>p.is_read).length;
+    const total = book.total_chapters;
+    const pct = total ? Math.round((done/total)*100) : 0;
+    const isComplete = total > 0 && done === total;
+    const bucket = book.testament === 'OT' ? ot : nt;
+    bucket.booksTotal++; if(isComplete) bucket.booksDone++;
+    bucket.chapTotal += total; bucket.chapDone += done;
+    const chips = progress.map(p=>`<div class="chap ${p.is_read?'read':''}" data-pid="${p.id}">${p.chapter_number}</div>`).join('');
+    const html = `<details class="book-acc" data-bookid="${book.id}" data-testament="${book.testament}">
+      <summary>
+        <span class="book-acc-name">${escapeHtml(book.book_name)}</span>
+        <span class="book-acc-meta">${done}/${total} &middot; ${pct}%</span>
+      </summary>
+      <div class="chapter-grid">${chips}</div>
+    </details>`;
+    booksHtml[book.testament].push(html);
+  });
+
+  const chapDone = ot.chapDone + nt.chapDone, chapTotal = ot.chapTotal + nt.chapTotal;
+  const booksDone = ot.booksDone + nt.booksDone, booksTotal = ot.booksTotal + nt.booksTotal;
+  const overallPct = chapTotal ? Math.round((chapDone/chapTotal)*100) : 0;
+  const otPct = ot.chapTotal ? Math.round((ot.chapDone/ot.chapTotal)*100) : 0;
+  const ntPct = nt.chapTotal ? Math.round((nt.chapDone/nt.chapTotal)*100) : 0;
+
+  container.innerHTML = `
+    <div class="card">
+      <div class="ring-row">
+        <div class="ring-item">${ringSVG(overallPct,'var(--lav)','var(--lav-soft)')}<div class="ring-label">Holy Bible</div></div>
+        <div class="ring-item">${ringSVG(otPct,'var(--ot)','var(--ot-soft)')}<div class="ring-label">Old Testament</div></div>
+        <div class="ring-item">${ringSVG(ntPct,'var(--nt)','var(--nt-soft)')}<div class="ring-label">New Testament</div></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stat-title">Books</div>
+      <div class="stat-row">
+        <div class="stat-chip" style="background:var(--ot-soft);color:var(--ot-deep);">${ot.booksDone}/${ot.booksTotal}<span>Old Testament</span></div>
+        <div class="stat-chip" style="background:var(--nt-soft);color:var(--nt-deep);">${nt.booksDone}/${nt.booksTotal}<span>New Testament</span></div>
+        <div class="stat-chip" style="background:var(--lav-soft);color:var(--lav-deep);">${booksDone}/${booksTotal}<span>Total</span></div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="stat-title">Chapters</div>
+      <div class="stat-row">
+        <div class="stat-chip" style="background:var(--ot-soft);color:var(--ot-deep);">${ot.chapDone}/${ot.chapTotal}<span>Old Testament</span></div>
+        <div class="stat-chip" style="background:var(--nt-soft);color:var(--nt-deep);">${nt.chapDone}/${nt.chapTotal}<span>New Testament</span></div>
+        <div class="stat-chip" style="background:var(--lav-soft);color:var(--lav-deep);">${chapDone}/${chapTotal}<span>Total</span></div>
+      </div>
+    </div>
+    <div class="section-heading">Old Testament</div>
+    ${booksHtml.OT.join('')}
+    <div class="section-heading">New Testament</div>
+    ${booksHtml.NT.join('')}
+  `;
+
+  container.querySelectorAll('.book-acc').forEach(d=>{ if(openBooks.has(d.dataset.bookid)) d.open = true; });
+
+  container.querySelectorAll('.chap').forEach(chip=>{
+    chip.addEventListener('click', async ()=>{
+      const isRead = chip.classList.contains('read');
+      chip.classList.toggle('read');
+      const { error } = await sb.from('reading_progress').update({
+        is_read: !isRead,
+        date_read: isRead ? null : new Date().toISOString().slice(0,10)
+      }).eq('id', chip.dataset.pid);
+      if(error){ toast('May error: '+error.message); chip.classList.toggle('read'); return; }
+      loadChecklist();
+    });
+  });
+}
+
+/* ---------------- init ---------------- */
+checkSession();
+</script>
+</body>
+</html>
