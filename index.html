@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>daily</title>
+<title>munting kwento</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -188,11 +188,50 @@
   .icon-btn:hover{background:rgba(0,0,0,.05);color:var(--ink);}
 
   /* ---------- journal ---------- */
+  /* ---------- journal ---------- */
+  .journal-card{
+    cursor:pointer;
+    padding:16px 18px;
+    transition:box-shadow .2s ease, transform .2s ease, border-color .2s ease;
+    border:1.5px solid transparent;
+  }
+  .journal-card:hover{
+    box-shadow:0 5px 18px rgba(150,90,110,.12);
+  }
+  .journal-card.expanded{
+    padding:20px;
+    border-color:var(--rose-soft);
+    box-shadow:0 7px 24px rgba(200,90,130,.13);
+    transform:translateY(-1px);
+  }
   .entry-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
-  .entry-date{font-size:.78rem;color:var(--ink-soft);font-weight:600;letter-spacing:.3px;}
-  .entry-title{font-size:1.15rem;font-weight:600;color:var(--rose-deep);margin:2px 0 8px;}
-  .entry-mood{font-size:1.2rem;}
-  .entry-photo{width:100%;max-height:280px;object-fit:cover;border-radius:14px 6px 14px 6px;margin:10px 0;}
+  .entry-date{font-size:.76rem;color:var(--ink-soft);font-weight:600;letter-spacing:.3px;}
+  .entry-title{font-size:1.08rem;font-weight:600;color:var(--rose-deep);margin:1px 0 0;}
+  .entry-mood{font-size:1.15rem;}
+  .entry-actions{display:flex;align-items:center;gap:6px;flex-shrink:0;}
+  .entry-expand{
+    color:var(--rose-deep);
+    font-size:.78rem;
+    font-weight:600;
+    transition:transform .2s ease;
+  }
+  .journal-card.expanded .entry-expand{transform:rotate(180deg);}
+  .entry-preview{
+    color:var(--ink-soft);
+    font-size:.88rem;
+    margin:8px 0 0;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .entry-body{
+    display:none;
+    margin-top:12px;
+    padding-top:12px;
+    border-top:1px solid var(--line);
+  }
+  .journal-card.expanded .entry-body{display:block;}
+  .entry-photo{width:100%;max-height:280px;object-fit:cover;border-radius:14px 6px 14px 6px;margin:0 0 12px;}
   .entry-content{white-space:pre-wrap;margin-bottom:10px;}
   .highlights{
     background:var(--rose-soft);
@@ -309,6 +348,10 @@
     .chap{width:29px;height:29px;font-size:.7rem;}
     details.book-acc summary{padding:12px 14px;font-size:.88rem;}
     .soap-ref{font-size:1rem;}
+    .journal-card{padding:14px 15px;}
+    .journal-card.expanded{padding:16px;}
+    .entry-title{font-size:1rem;}
+    .entry-preview{font-size:.84rem;}
   }
 
   /* ---------- auth screen ---------- */
@@ -351,7 +394,7 @@
   <div class="auth-card">
     <div class="brand">
       <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.2 2 4.5 5.6 4c2-.3 3.7.6 4.9 2.2C11.7 4.6 13.4 3.7 15.4 4 19 4.5 20.6 8.2 19 11.7 16.5 16.4 9 21 9 21" fill="#EF7FA0"/></svg>
-      daily
+      munting kwento
     </div>
     <div class="tagline">journal &middot; bible study &middot; reading checklist</div>
     <div class="auth-tabs">
@@ -378,7 +421,7 @@
   <div class="header-top">
     <div class="brand">
       <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.2 2 4.5 5.6 4c2-.3 3.7.6 4.9 2.2C11.7 4.6 13.4 3.7 15.4 4 19 4.5 20.6 8.2 19 11.7 16.5 16.4 9 21 9 21" fill="#EF7FA0"/></svg>
-      daily
+      munting kwento
     </div>
     <button class="signout-btn" id="signOutBtn">Log out</button>
   </div>
@@ -688,25 +731,46 @@ async function loadJournal(){
     const highlights = (e.highlights && e.highlights.length)
       ? `<div class="highlights"><p>Buod</p><ul>${e.highlights.map(h=>`<li>${escapeHtml(h)}</li>`).join('')}</ul></div>` : '';
     const photo = e.image_url ? `<img class="entry-photo" src="${e.image_url}" alt="">` : '';
-    return `<div class="card" data-id="${e.id}">
+    const preview = escapeHtml((e.content || '').replace(/\s+/g,' ').trim());
+    return `<div class="card journal-card" data-id="${e.id}" tabindex="0" role="button" aria-expanded="false">
       <div class="entry-head">
-        <div>
+        <div style="min-width:0;">
           <div class="entry-date">${fmtDate(e.entry_date)}</div>
           <div class="entry-title">${escapeHtml(e.title)}</div>
+          <div class="entry-preview">${preview}</div>
         </div>
-        <div style="display:flex;align-items:center;gap:8px;">
+        <div class="entry-actions">
           <span class="entry-mood">${e.mood||''}</span>
-          <button class="icon-btn delJournal" title="Delete">🗑</button>
+          <button class="icon-btn delJournal" title="Delete" type="button">🗑</button>
+          <span class="entry-expand" aria-hidden="true">⌄</span>
         </div>
       </div>
-      ${photo}
-      <div class="entry-content">${escapeHtml(e.content)}</div>
-      ${highlights}
+      <div class="entry-body">
+        ${photo}
+        <div class="entry-content">${escapeHtml(e.content)}</div>
+        ${highlights}
+      </div>
     </div>`;
   }).join('');
+  list.querySelectorAll('.journal-card').forEach(card=>{
+    const toggleCard = (ev)=>{
+      if(ev.target.closest('.delJournal')) return;
+      const expanded = card.classList.toggle('expanded');
+      card.setAttribute('aria-expanded', expanded ? 'true' : 'false');
+    };
+    card.addEventListener('click', toggleCard);
+    card.addEventListener('keydown', ev=>{
+      if(ev.key === 'Enter' || ev.key === ' '){
+        ev.preventDefault();
+        toggleCard(ev);
+      }
+    });
+  });
+
   list.querySelectorAll('.delJournal').forEach(b=>{
     b.addEventListener('click', async (ev)=>{
-      const id = ev.target.closest('.card').dataset.id;
+      ev.stopPropagation();
+      const id = ev.target.closest('.journal-card').dataset.id;
       if(!confirm('Sigurado ka bang burahin ang entry na ito?')) return;
       const { error } = await sb.from('journal_entries').delete().eq('id', id);
       if(error){ toast('May error: '+error.message); return; }
