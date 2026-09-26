@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Daily</title>
+<title>munting kwento</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -45,7 +45,6 @@
     font-size:16px;
     line-height:1.55;
     min-height:100vh;
-    padding-bottom:60px;
   }
   h1,h2,h3,.brand,button,.tab{font-family:'Fredoka',sans-serif;}
 
@@ -94,7 +93,7 @@
   .tab[data-tab="bible"].active{color:var(--gold-deep);}
   .tab[data-tab="checklist"].active{color:var(--lav-deep);}
 
-  main{max-width:640px;margin:0 auto;padding:8px 16px 40px;}
+  main{max-width:640px;margin:0 auto;padding:8px 16px 60px;}
   section.panel{display:none;}
   section.panel.active{display:block;}
 
@@ -127,15 +126,17 @@
   .field input[type=text],
   .field input[type=number],
   .field input[type=date],
+  .field input[type=email],
+  .field input[type=password],
   .field select,
   .field textarea{
     width:100%;
     border:1.5px solid var(--line);
     background:#FFFCFD;
     border-radius:12px;
-    padding:10px 12px;
+    padding:11px 12px;
     font-family:'Quicksand',sans-serif;
-    font-size:.96rem;
+    font-size:1rem;
     color:var(--ink);
     resize:vertical;
   }
@@ -292,9 +293,22 @@
   #toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
 
   ::placeholder{color:#C9B7BF;}
-  @media (max-width:420px){
+  @media (max-width:480px){
+    header{padding:22px 16px 14px;}
     .brand{font-size:1.4rem;}
+    .brand svg{width:19px;height:19px;}
+    .tagline{font-size:.82rem;}
+    .tab{padding:8px 13px;font-size:.86rem;}
     .card{padding:16px;}
+    .auth-card{padding:24px 20px;max-width:100%;}
+    .ring-row{gap:4px;}
+    .ring-item svg{width:80px;height:80px;}
+    .stat-row{gap:6px;}
+    .stat-chip{padding:10px 4px;font-size:.9rem;}
+    .stat-chip span{font-size:.62rem;}
+    .chap{width:29px;height:29px;font-size:.7rem;}
+    details.book-acc summary{padding:12px 14px;font-size:.88rem;}
+    .soap-ref{font-size:1rem;}
   }
 
   /* ---------- auth screen ---------- */
@@ -321,13 +335,14 @@
   .auth-msg{font-size:.82rem;color:var(--rose-deep);margin-top:12px;min-height:1.2em;}
 
   /* ---------- header sign out ---------- */
-  header{position:relative;}
+  .header-top{position:relative;width:100%;}
   .signout-btn{
-    position:absolute;top:24px;right:18px;background:none;border:none;
-    color:var(--ink-soft);font-size:.78rem;cursor:pointer;
-    font-family:'Quicksand',sans-serif;font-weight:600;text-decoration:underline;
+    position:absolute;top:50%;right:0;transform:translateY(-50%);
+    background:transparent;border:1.5px solid var(--rose);
+    color:var(--rose-deep);font-size:.76rem;font-weight:600;
+    padding:6px 13px;border-radius:999px;cursor:pointer;white-space:nowrap;
   }
-  .signout-btn:hover{color:var(--rose-deep);}
+  .signout-btn:hover{background:var(--rose-soft);}
 </style>
 </head>
 <body>
@@ -336,7 +351,7 @@
   <div class="auth-card">
     <div class="brand">
       <svg viewBox="0 0 24 24" fill="none" width="20" height="20"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.2 2 4.5 5.6 4c2-.3 3.7.6 4.9 2.2C11.7 4.6 13.4 3.7 15.4 4 19 4.5 20.6 8.2 19 11.7 16.5 16.4 9 21 9 21" fill="#EF7FA0"/></svg>
-      Daily
+      munting kwento
     </div>
     <div class="tagline">journal &middot; bible study &middot; reading checklist</div>
     <div class="auth-tabs">
@@ -360,10 +375,12 @@
 
 <div id="appShell" style="display:none;">
 <header>
-  <button class="signout-btn" id="signOutBtn">Log out</button>
-  <div class="brand">
-    <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.2 2 4.5 5.6 4c2-.3 3.7.6 4.9 2.2C11.7 4.6 13.4 3.7 15.4 4 19 4.5 20.6 8.2 19 11.7 16.5 16.4 9 21 9 21" fill="#EF7FA0"/></svg>
-    Daily
+  <div class="header-top">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none"><path d="M12 21s-7.5-4.6-10-9.3C.4 8.2 2 4.5 5.6 4c2-.3 3.7.6 4.9 2.2C11.7 4.6 13.4 3.7 15.4 4 19 4.5 20.6 8.2 19 11.7 16.5 16.4 9 21 9 21" fill="#EF7FA0"/></svg>
+      munting kwento
+    </div>
+    <button class="signout-btn" id="signOutBtn">Log out</button>
   </div>
   <div class="tagline">journal &middot; bible study &middot; reading checklist</div>
   <nav class="tabs">
@@ -883,7 +900,7 @@ async function loadChecklist(){
     bucket.booksTotal++; if(isComplete) bucket.booksDone++;
     bucket.chapTotal += total; bucket.chapDone += done;
     const chips = progress.map(p=>`<div class="chap ${p.is_read?'read':''}" data-pid="${p.id}">${p.chapter_number}</div>`).join('');
-    const html = `<details class="book-acc" data-bookid="${book.id}" data-testament="${book.testament}">
+    const html = `<details class="book-acc" data-bookid="${book.id}" data-testament="${book.testament}" data-total="${total}">
       <summary>
         <span class="book-acc-name">${escapeHtml(book.book_name)}</span>
         <span class="book-acc-meta">${done}/${total} &middot; ${pct}%</span>
@@ -902,25 +919,25 @@ async function loadChecklist(){
   container.innerHTML = `
     <div class="card">
       <div class="ring-row">
-        <div class="ring-item">${ringSVG(overallPct,'var(--lav)','var(--lav-soft)')}<div class="ring-label">Holy Bible</div></div>
-        <div class="ring-item">${ringSVG(otPct,'var(--ot)','var(--ot-soft)')}<div class="ring-label">Old Testament</div></div>
-        <div class="ring-item">${ringSVG(ntPct,'var(--nt)','var(--nt-soft)')}<div class="ring-label">New Testament</div></div>
+        <div class="ring-item"><div id="ringOverall">${ringSVG(overallPct,'var(--lav)','var(--lav-soft)')}</div><div class="ring-label">Holy Bible</div></div>
+        <div class="ring-item"><div id="ringOT">${ringSVG(otPct,'var(--ot)','var(--ot-soft)')}</div><div class="ring-label">Old Testament</div></div>
+        <div class="ring-item"><div id="ringNT">${ringSVG(ntPct,'var(--nt)','var(--nt-soft)')}</div><div class="ring-label">New Testament</div></div>
       </div>
     </div>
     <div class="card">
       <div class="stat-title">Books</div>
       <div class="stat-row">
-        <div class="stat-chip" style="background:var(--ot-soft);color:var(--ot-deep);">${ot.booksDone}/${ot.booksTotal}<span>Old Testament</span></div>
-        <div class="stat-chip" style="background:var(--nt-soft);color:var(--nt-deep);">${nt.booksDone}/${nt.booksTotal}<span>New Testament</span></div>
-        <div class="stat-chip" style="background:var(--lav-soft);color:var(--lav-deep);">${booksDone}/${booksTotal}<span>Total</span></div>
+        <div class="stat-chip" id="statBooksOT" style="background:var(--ot-soft);color:var(--ot-deep);">${ot.booksDone}/${ot.booksTotal}<span>Old Testament</span></div>
+        <div class="stat-chip" id="statBooksNT" style="background:var(--nt-soft);color:var(--nt-deep);">${nt.booksDone}/${nt.booksTotal}<span>New Testament</span></div>
+        <div class="stat-chip" id="statBooksTotal" style="background:var(--lav-soft);color:var(--lav-deep);">${booksDone}/${booksTotal}<span>Total</span></div>
       </div>
     </div>
     <div class="card">
       <div class="stat-title">Chapters</div>
       <div class="stat-row">
-        <div class="stat-chip" style="background:var(--ot-soft);color:var(--ot-deep);">${ot.chapDone}/${ot.chapTotal}<span>Old Testament</span></div>
-        <div class="stat-chip" style="background:var(--nt-soft);color:var(--nt-deep);">${nt.chapDone}/${nt.chapTotal}<span>New Testament</span></div>
-        <div class="stat-chip" style="background:var(--lav-soft);color:var(--lav-deep);">${chapDone}/${chapTotal}<span>Total</span></div>
+        <div class="stat-chip" id="statChapOT" style="background:var(--ot-soft);color:var(--ot-deep);">${ot.chapDone}/${ot.chapTotal}<span>Old Testament</span></div>
+        <div class="stat-chip" id="statChapNT" style="background:var(--nt-soft);color:var(--nt-deep);">${nt.chapDone}/${nt.chapTotal}<span>New Testament</span></div>
+        <div class="stat-chip" id="statChapTotal" style="background:var(--lav-soft);color:var(--lav-deep);">${chapDone}/${chapTotal}<span>Total</span></div>
       </div>
     </div>
     <div class="section-heading">Old Testament</div>
@@ -935,14 +952,52 @@ async function loadChecklist(){
     chip.addEventListener('click', async ()=>{
       const isRead = chip.classList.contains('read');
       chip.classList.toggle('read');
+      recomputeChecklistUI();
       const { error } = await sb.from('reading_progress').update({
         is_read: !isRead,
         date_read: isRead ? null : new Date().toISOString().slice(0,10)
       }).eq('id', chip.dataset.pid);
-      if(error){ toast('May error: '+error.message); chip.classList.toggle('read'); return; }
-      loadChecklist();
+      if(error){
+        toast('May error: '+error.message);
+        chip.classList.toggle('read');
+        recomputeChecklistUI();
+      }
     });
   });
+}
+
+/* Instantly recompute rings, stat chips, and per-book progress from the DOM
+   itself — no re-fetch, no re-render, no flicker when checking a chapter. */
+function recomputeChecklistUI(){
+  let ot = {booksTotal:0, booksDone:0, chapTotal:0, chapDone:0};
+  let nt = {booksTotal:0, booksDone:0, chapTotal:0, chapDone:0};
+
+  document.querySelectorAll('#checklistList .book-acc').forEach(d=>{
+    const total = parseInt(d.dataset.total, 10);
+    const done = d.querySelectorAll('.chap.read').length;
+    const pct = total ? Math.round((done/total)*100) : 0;
+    d.querySelector('.book-acc-meta').textContent = `${done}/${total} · ${pct}%`;
+    const bucket = d.dataset.testament === 'OT' ? ot : nt;
+    bucket.booksTotal++; if(done === total && total > 0) bucket.booksDone++;
+    bucket.chapTotal += total; bucket.chapDone += done;
+  });
+
+  const chapDone = ot.chapDone + nt.chapDone, chapTotal = ot.chapTotal + nt.chapTotal;
+  const booksDone = ot.booksDone + nt.booksDone, booksTotal = ot.booksTotal + nt.booksTotal;
+  const overallPct = chapTotal ? Math.round((chapDone/chapTotal)*100) : 0;
+  const otPct = ot.chapTotal ? Math.round((ot.chapDone/ot.chapTotal)*100) : 0;
+  const ntPct = nt.chapTotal ? Math.round((nt.chapDone/nt.chapTotal)*100) : 0;
+
+  document.getElementById('ringOverall').innerHTML = ringSVG(overallPct,'var(--lav)','var(--lav-soft)');
+  document.getElementById('ringOT').innerHTML = ringSVG(otPct,'var(--ot)','var(--ot-soft)');
+  document.getElementById('ringNT').innerHTML = ringSVG(ntPct,'var(--nt)','var(--nt-soft)');
+
+  document.getElementById('statBooksOT').innerHTML = `${ot.booksDone}/${ot.booksTotal}<span>Old Testament</span>`;
+  document.getElementById('statBooksNT').innerHTML = `${nt.booksDone}/${nt.booksTotal}<span>New Testament</span>`;
+  document.getElementById('statBooksTotal').innerHTML = `${booksDone}/${booksTotal}<span>Total</span>`;
+  document.getElementById('statChapOT').innerHTML = `${ot.chapDone}/${ot.chapTotal}<span>Old Testament</span>`;
+  document.getElementById('statChapNT').innerHTML = `${nt.chapDone}/${nt.chapTotal}<span>New Testament</span>`;
+  document.getElementById('statChapTotal').innerHTML = `${chapDone}/${chapTotal}<span>Total</span>`;
 }
 
 /* ---------------- init ---------------- */
